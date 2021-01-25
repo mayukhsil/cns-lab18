@@ -1,0 +1,191 @@
+8.
+
+import java.util.Scanner;
+public classBELLMANFORD
+{
+private int d[];
+private int num_ver;
+public static final int MAX_VALUE = 999;
+public BELLMANFORD(int num_ver)
+{
+this.num_ver = num_ver;
+d = new int[num_ver + 1];
+}
+public void BellmanFordEvaluation(int source, int A[][])
+{
+for (int node = 1; node <= num_ver; node++)
+{
+d[node] = MAX_VALUE;
+}
+d[source] = 0;
+for (int node = 1; node <= num_ver - 1; node++)
+{
+for ( int sn = 1; sn <= num_ver; sn++)
+{
+for (int dn = 1; dn <= num_ver; dn++)
+{
+if (A[sn][dn] != MAX_VALUE)
+{
+if (d[dn] > d[sn] + A[sn][dn])
+d[dn] = d[sn] + A[sn][dn];
+} } } }
+for ( int sn = 1; sn <= num_ver; sn++)
+{
+for (int dn = 1; dn <= num_ver; dn++)
+{
+if (A[sn][dn] != MAX_VALUE)
+{
+if (d[dn] > d[sn] + A[sn][dn])
+System.out.println("The Graph contains negative egde cycle");
+} } }
+for (int vertex=1; vertex <=num_ver; vertex++)
+{
+System.out.println("Distance of Source" +source+ "to" +vertex+ "is" +d[vertex]);
+} }
+public static void main(String[] args)
+{
+int num_ver = 0;
+int source;
+Scanner scanner = new Scanner(System.in);
+System.out.println("Enter the number of vertices");
+num_ver = scanner.nextInt();
+int A[][] = new int[num_ver + 1][num_ver + 1];
+System.out.println("Enter the adjacency matrix");
+for ( int sn = 1; sn<=num_ver; sn++)
+{
+for (int dn = 1; dn <= num_ver; dn++)
+{
+A[sn][dn] = scanner.nextInt();
+if (sn == dn)
+{
+A[sn][dn] = 0;
+continue;
+}
+if (A[sn][dn] == 0)
+{
+A[sn][dn] = MAX_VALUE;
+} } }
+System.out.println("Enter the source vertex");
+source = scanner.nextInt();
+BELLMANFORD b = new BELLMANFORD(num_ver);
+b.BellmanFordEvaluation(source,A);
+scanner.close();
+}
+}
+
+9.
+Client side Program
+
+import java.net.*;
+import java.io.*;
+public class ContentClient
+{
+public static void main( String args[ ] ) throws Exception
+{
+Socket sock = new Socket("127.0.0.1",4000);
+System.out.print("Enter the file name");
+BufferedReader keyRead = new BufferedReader(new InputStreamReader(System.in));
+String fname = keyRead.readLine();
+OutputStream ostream = sock.getOutputStream( );
+PrintWriter pwrite = new PrintWriter(ostream, true);
+pwrite.println(fname);
+InputStream istream = sock.getInputStream();
+BufferedReader socketRead = new BufferedReader(new InputStreamReader(istream));
+String str;
+while((str = socketRead.readLine()) != null)
+{
+System.out.println(str);
+}
+pwrite.close(); socketRead.close(); keyRead.close();
+}
+}
+
+Server side program
+
+import java.net.*;
+import java.io.*;
+public class ContentsServer
+{
+public static void main(String args[]) throws Exception
+{
+ServerSocket sersock = new ServerSocket(4000);
+System.out.println("Server ready for connection");
+Socket sock = sersock.accept();
+System.out.println("Connection is successful and wating for chatting");
+InputStream istream = sock.getInputStream( );
+BufferedReader fileRead =new BufferedReader(new InputStreamReader(istream));
+String fname = fileRead.readLine( );
+BufferedReader contentRead = new BufferedReader(new FileReader(fname) );
+OutputStream ostream = sock.getOutputStream( );
+PrintWriter pwrite = new PrintWriter(ostream, true);
+String str;
+while((str = contentRead.readLine()) != null)
+{
+pwrite.println(str);
+}
+sock.close(); sersock.close();
+pwrite.close(); fileRead.close(); contentRead.close();
+}
+}
+
+9.
+import java.util.Scanner;
+public class leakybucket
+{
+static int front=-1;
+static int rear=-1;
+static int max=10;
+static int[]q=new int[10];
+public static void delete()
+{
+if(front==rear)
+front=rear=-1;
+else
+front=(front+1)%max;
+}
+public static void insert(int i)
+{
+if(front==-1)
+front=rear=0;
+else
+rear=(rear+1)%max;
+q[rear]=i;
+}
+public static void main(String[] args)
+{
+int t=0,i=1,j=1,cap,n,a,q=1;
+int b=0;
+System.out.println("enter the bucket capacity");
+Scanner S=new Scanner(System.in);
+cap=S.nextInt();
+System.out.println("enter the rate at which packet must be sent:");
+b=S.nextInt();
+System.out.println("enter the number of count for which output should be shown");
+n=S.nextInt();
+for(a=0;a<n;a++)
+{
+t=(++t)%b;
+System.out.print("\t t:"+t);
+if(t==0)
+{
+delete();
+System.out.print(j+"delivered\n");
+j++;
+}
+else {
+if((q-j)>=cap)
+{
+System.out.print(i+"discarded\n");
+i++;
+}
+else
+{
+System.out.print(i+"queue\n");
+insert(i);
+i++;
+q++;
+}
+}
+}
+}
+}

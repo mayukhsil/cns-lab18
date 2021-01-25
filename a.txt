@@ -1,0 +1,174 @@
+1. Simulate a three-node point-to-point network with a duplex link between them. Set the queue
+size and vary the bandwidth and find the number of packetsdropped.
+Aim: To understand and design the point-to-point network and to realize that changing the queue size
+and the bandwidth will have its effect on the flow of data.
+
+set ns [new Simulator]
+set tf [open lab1.tr w]
+$ns trace-all $tf
+set nf [open lab1.nam w]
+$ns namtrace-all $nf
+set n0 [$ns node]
+set n1 [$ns node]
+set n2 [$ns node]
+set n3 [$ns node]
+$ns duplex-link $n0 $n2 10Mb 300ms DropTail
+$ns duplex-link $n1 $n2 10Mb 300ms DropTail
+$ns duplex-link $n2 $n3 1Mb 300ms DropTail
+$ns set queue-limit $n0 $n2 10
+$ns set queue-limit $n1 $n2 10
+$ns set queue-limit $n2 $n3 5
+set udp0 [new Agent/UDP]
+$ns attach-agent $n0 $udp0
+set cbr0 [new Application/Traffic/CBR]
+$cbr0 attach-agent $udp0
+set null3 [new Agent/Null]
+$ns attach-agent $n3 $null3
+set udp1 [ new Agent/UDP]
+$ns attach-agent $n1 $udp1
+set cbr1 [new Application/Traffic/CBR]
+$cbr1 attach-agent $udp1
+$udp0 set class_ 1
+$udp1 set class_ 2
+$ns connect $udp0 $null3
+$ns connect $udp1 $null3
+$cbr1 set packetSize_ 500 mb
+$cbr1 set interval_ 0.005
+proc finish { } {
+global ns nf tf
+$ns flush-trace
+#execute nam on the trace file
+exec nam lab1.nam &
+#close the trace file
+close $tf
+close $nf
+exit 0
+}
+$ns at 0.1 "$cbr0 start"
+$ns at 0.1 "$cbr1 start"
+$ns at 10.0 "finish"
+$ns run
+
+
+2. Simulate the transmission of ping messages over a network topology consisting of 6 nodes
+and find the number of packets dropped due tocongestion.
+Aim: To understand and design the ping message topology and observe how the packets get dropped
+due to congestion
+
+set ns [new Simulator]
+set f [open ex2.tr w]
+$ns trace-all $f
+set nf [open ex2.nam w]
+$ns namtrace-all $nf
+set n0 [$ns node]
+set n1 [$ns node]
+set n2 [$ns node]
+set n3 [$ns node]
+set n4 [$ns node]
+set n5 [$ns node]
+$ns duplex-link $n0 $n1 0.01Mb 10ms DropTail
+$ns duplex-link $n1 $n2 0.01Mb 10ms DropTail
+$ns duplex-link $n2 $n3 0.01Mb 10ms DropTail
+$ns duplex-link $n3 $n4 0.01Mb 10ms DropTail
+$ns duplex-link $n4 $n5 0.01Mb 10ms DropTail
+$ns duplex-link $n0 $n5 0.01Mb 10ms DropTail
+Agent/Ping instproc recv {from rtt} {
+$self instvar node_
+puts "node [$node_ id] received ping answer from $from with round-trip-time $rtt ms."
+}
+set p(0) [new Agent/Ping]
+$ns attach-agent $n0 $p(0)
+set p(1) [new Agent/Ping]
+$ns attach-agent $n1 $p(1)
+set p(2) [new Agent/Ping]
+$ns attach-agent $n2 $p(2)
+set p(3) [new Agent/Ping]
+$ns attach-agent $n3 $p(3)
+set p(4) [new Agent/Ping]
+$ns attach-agent $n4 $p(4)
+set p(5) [new Agent/Ping]
+$ns attach-agent $n5 $p(5)
+$ns connect $p(0) $p(1)
+$ns connect $p(1) $p(2)
+$ns connect $p(2) $p(3)
+$ns connect $p(3) $p(4)
+$ns connect $p(4) $p(5)
+$ns connect $p(5) $p(0)
+for {set i 0} {$i < 50 } {incr i} {
+$ns at 0.2 "$p(0) send"
+$ns at 0.2 "$p(1) send"
+$ns at 0.2 "$p(2) send"
+$ns at 0.2 "$p(3) send"
+$ns at 0.2 "$p(4) send"
+$ns at 0.2 "$p(5) send"
+}
+proc finish {} {
+global ns f nf
+$ns flush-trace 
+#close the trace file
+close $f
+close $nf
+puts "running nam..."
+exec nam ex2.nam &
+exit 0
+}
+$ns at 1.0 "finish"
+$ns run
+
+
+3. Simulate an Ethernet LAN using N nodes and set multiple traffic nodes and plot
+congestion window for different source/destination.
+Aim: To understand and design the LAN network structure. and set different applications for
+observing how congestion occurs.
+set ns [new Simulator]
+set tf [open lab3.tr w]
+$ns trace-all $tf
+set nf [open lab3.nam w]
+$ns namtrace-all $nf
+set n0 [$ns node]
+set n1 [$ns node]
+set n2 [$ns node]
+set n3 [$ns node]
+$ns make-lan "$n0 $n1 $n2 $n3" 10Mb 10ms LL Queue/DropTail Mac/802_3
+set tcp0 [new Agent/TCP]
+$ns attach-agent $n0 $tcp0
+set ftp0 [new Application/FTP]
+$ftp0 attach-agent $tcp0
+set sink3 [new Agent/TCPSink]
+$ns attach-agent $n3 $sink3
+$ns connect $tcp0 $sink3
+set tcp2 [new Agent/TCP]
+$ns attach-agent $n2 $tcp2
+set ftp2 [new Application/FTP]
+$ftp2 attach-agent $tcp2
+set sink1 [new Agent/TCPSink]
+$ns attach-agent $n1 $sink1
+$ns connect $tcp2 $sink1
+set file1 [open file1.tr w]
+$tcp0 attach $file1
+$tcp0 trace cwnd_ $tcp0
+set maxcwnd_ 10
+set file2 [open file2.tr w]
+$tcp2 attach $file2
+$tcp2 trace cwnd_ $tcp2
+set maxcwnd_ 10
+proc finish { } {
+global nf tf ns
+$ns flush-trace
+exec nam lab3.nam &
+close $nf
+close $tf
+exit 0
+}
+$ns at 0.1 "$ftp0 start"
+$ns at 1.5 "$ftp0 stop"
+$ns at 2 "$ftp0 start"
+$ns at 3 "$ftp0 stop"
+$ns at 0.2 "$ftp2 start"
+$ns at 2 "$ftp2 stop"
+$ns at 2.5 "$ftp2 start"
+$ns at 4 "$ftp2 stop"
+$ns at 5.0 "finish"
+$ns run
+
+
