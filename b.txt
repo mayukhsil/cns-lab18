@@ -191,7 +191,7 @@ q++;
 }
 
 10:
-Client side: 
+Client side:
 import java.io.*;
 import java.net.*;
 public class UDPC
